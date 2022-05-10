@@ -92,7 +92,8 @@ function routes(app){
             }
 
         }catch(error){
-
+            console.error(error)
+            res.send('api-sandbox Error')
         }
 
     }))
@@ -139,7 +140,8 @@ function routes(app){
             }
 
         }catch(error){
-
+            console.error(error)
+            res.send('api-sandbox Error')
         }
 
     }))
