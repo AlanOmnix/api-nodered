@@ -58,17 +58,17 @@ function routes(app){
 
             const { incrementalOrderId, erpId } = req.body
 
+            const pdf = await fs.readFileSync('./pdfs/pdfbase64.txt', 'UTF-8')
+
             const rel = incrementalOrderId + erpId
 
             const search = await IdsModel.findOne({rel: rel})
 
             if(search){
 
-                res.json({ orden: { custom: { creditNoteErpId: search.creditNoteErpId }}})
+                res.json({ orden: { custom: { creditNoteErpId: search.creditNoteErpId, creditNotePdf: pdf }}})
 
             }else{
-
-                const pdf = await fs.readFileSync('./pdfs/pdfbase64.txt', 'UTF-8')
             
                 const prefix = 'erp-creditNote'
                   
@@ -107,16 +107,16 @@ function routes(app){
         try{    
            
             const { incrementalOrderId } = req.body
+
+            const pdf = await fs.readFileSync('./pdfs/pdfbase64.txt', 'UTF-8')
             
             const search = await IdsModel.findOne({incrementalOrderId: incrementalOrderId, prefix: 'dte'})
             
             if(search){
                 
-                res.json({ orden: { custom: { dteId: search.dteId }}})
+                res.json({ orden: { custom: { dteId: search.dteId, dtePdf: pdf, gddPdf: pdf }}})
                 
             }else{
-
-                const pdf = await fs.readFileSync('./pdfs/pdfbase64.txt', 'UTF-8')
                 
                 const totalIds = await IdsModel.count({prefix: 'dte'})
                 
