@@ -6,18 +6,25 @@ const router = Router()
 
 function routes(app){
 
-    app.use(router.post('/omnixid', async(req,res) => {
+    app.use(router.post('/systemids', async(req,res) => {
 
         try{
 
             const { incrementalOrderId, prefix } = req.body
 
+            if(prefix === 'wms'|| prefix ==='dte'|| prefix === 'erp'){}else{{ return res.json({error: 'prefix must be wms-erp-dte '}) }}
+
             const search = await IdsModel.findOne({incrementalOrderId, prefix})
 
-            const systemId = prefix === 'wms' ? 'wmsId' : prefix === 'erp' && 'erpId'
+            const pdf = await fs.readFileSync('./pdfs/pdfbase64.txt', 'UTF-8')
+
+            const systemId = prefix === 'wms' ? 'wmsId' : prefix === 'dte' ? 'dteId' : prefix === 'erp' && 'erpId'
 
             if(search){
 
+                prefix === 'dte' ? 
+                res.json({ orden: { custom: { [systemId]: search[systemId], dtePdf: pdf, gddPdf: pdf }}})
+                :
                 res.json({ orden: { custom: { [systemId]: search[systemId] }}})
                 
             }else{
@@ -31,12 +38,11 @@ function routes(app){
                 const newId = await new IdsModel({incrementalOrderId: incrementalOrderId, [systemId]: serial, prefix: prefix})
                     
                 await newId.save()
-                    
-                res.json({ orden: {
-                    custom:{
-                        [systemId]: serial
-                    }
-                }}) 
+
+                prefix === 'dte' ?
+                res.json({ orden:{ custom:{ [systemId]: serial, dtePdf: pdf, gddPdf: pdf } }})
+                :
+                res.json({ orden:{ custom:{ [systemId]: serial } }})
                 
             }
             
@@ -52,11 +58,15 @@ function routes(app){
 /* -------------------------------------------------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------------------------------------------------- */
 
-    app.use(router.post('/creditNoteErpId', async(req,res) => {
+    app.use(router.post('/credit-note-erp-id', async(req,res) => {
 
         try{
 
             const { incrementalOrderId, erpId } = req.body
+
+            const erp = await IdsModel.findOne({erpId})
+
+            if(!erp){ return res.json({error: 'erpId not found'})}
 
             const pdf = await fs.readFileSync('./pdfs/pdfbase64.txt', 'UTF-8')
 
@@ -101,56 +111,6 @@ function routes(app){
 
 /* -------------------------------------------------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------------------------------------------------------- */
-
-    app.use(router.post('/dte', async(req,res) => {
-
-        try{    
-           
-            const { incrementalOrderId } = req.body
-
-            const pdf = await fs.readFileSync('./pdfs/pdfbase64.txt', 'UTF-8')
-            
-            const search = await IdsModel.findOne({incrementalOrderId: incrementalOrderId, prefix: 'dte'})
-            
-            if(search){
-                
-                res.json({ orden: { custom: { dteId: search.dteId, dtePdf: pdf, gddPdf: pdf }}})
-                
-            }else{
-                
-                const totalIds = await IdsModel.count({prefix: 'dte'})
-                
-                const idNumber = totalIds.toString().padStart(8, '0') 
-                
-                let serial = `dte-${idNumber}`
-                
-                const newId = await new IdsModel({incrementalOrderId: incrementalOrderId, dteId: serial, prefix: 'dte'})
-                
-                await newId.save()
-                    
-                res.json({ orden: {
-                    custom:{
-                        dteId: serial,
-                        dtePdf: pdf,
-                        gddPdf: pdf
-                    }
-                }}) 
-                
-            }
-
-        }catch(error){
-            console.error(error)
-            res.send('api-sandbox Error')
-        }
-
-    }))
-
-
-/* -------------------------------------------------------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------------------------------------------------------- */
-    
-
 
     app.use(router.get('/', (req,res)=>{
         res.send('api-sandbox')

@@ -12,7 +12,7 @@ const IdsSchema = new Schema({
     
     erpId: { type: String },
     
-    incrementalOrderId: { type: Number },
+    incrementalOrderId: { type: String },
 
     prefix: { type: String },
 
